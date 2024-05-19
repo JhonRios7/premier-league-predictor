@@ -1,28 +1,15 @@
 from flask import Flask, request, jsonify, render_template
-import joblib
-import pandas as pd
-from tensorflow.keras.models import load_model
-from sklearn.preprocessing import StandardScaler
+import pickle
+import numpy as np
+import tensorflow as tf
 
 app = Flask(__name__)
 
-# Cargar los modelos
-rf_model = joblib.load('models/rf_model.pkl')
-nn_model = load_model('models/nn_model.h5')
-scaler = StandardScaler()
+# Cargar los modelos preentrenados
+with open('models/rf_model.pkl', 'rb') as rf_model_file:
+    rf_model = pickle.load(rf_model_file)
 
-# Cargar datos y entrenar el escalador (solo para este ejemplo, idealmente guardar el escalador)
-matches = pd.read_csv('matches.csv', sep=',')
-predictors = ["Venue_code", "Opp_code", "Hour", "Day_code"]
-cols = ["GF", "GA", "Sh", "SoT", "Dist", "FK", "PK", "PKatt"]
-new_cols = [f"{c}_rolling" for c in cols]
-
-# Preprocesamiento
-def preprocess(data):
-    data = pd.DataFrame(data, index=[0])
-    data[new_cols] = data[new_cols].fillna(data[new_cols].mean())
-    scaled_data = scaler.transform(data[predictors + new_cols])
-    return scaled_data
+nn_model = tf.keras.models.load_model('models/nn_model.h5')
 
 @app.route('/')
 def home():
@@ -30,17 +17,19 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.json
-    processed_data = preprocess(data)
+    data = request.get_json(force=True)
+    features = np.array(data['features']).reshape(1, -1)
     
-    # Predicciones
-    rf_prediction = rf_model.predict(processed_data)
-    nn_prediction = (nn_model.predict(processed_data) > 0.5).astype("int32")
+    # Predecir con Random Forest
+    rf_prediction = rf_model.predict(features)
+    
+    # Predecir con Neural Network
+    nn_prediction = nn_model.predict(features)
     
     return jsonify({
-        'rf_prediction': int(rf_prediction[0]),
-        'nn_prediction': int(nn_prediction[0])
+        'rf_prediction': rf_prediction[0],
+        'nn_prediction': nn_prediction[0].tolist()
     })
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)

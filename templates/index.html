@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predictor de Liga Premier</title>
+</head>
+<body>
+    <h1>Hacer una Predicción</h1>
+    <form id="predictionForm">
+        <label for="features">Características:</label><br>
+        <input type="text" id="features" name="features"><br>
+        <input type="button" value="Predecir" onclick="submitForm()">
+    </form>
+    <p id="result"></p>
+
+    <script>
+        function submitForm() {
+            const features = document.getElementById('features').value.split(',').map(Number);
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({features: features})
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = 
+                  'RF Predicción: ' + data.rf_prediction + 
+                  ', NN Predicción: ' + data.nn_prediction;
+            });
+        }
+    </script>
+</body>
+</html>
