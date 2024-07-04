@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Premier League Predictor</title>
+</head>
+<body>
+    <h1>Predict Premier League Matches</h1>
+    <form id="predictionForm">
+        <!-- Aquí incluirías tus campos de entrada de características -->
+        <input type="text" id="Venue_code" name="Venue_code" placeholder="Venue_code"><br>
+        <input type="text" id="Opp_code" name="Opp_code" placeholder="Opp_code"><br>
+        <input type="text" id="Hour" name="Hour" placeholder="Hour"><br>
+        <input type="text" id="Day_code" name="Day_code" placeholder="Day_code"><br>
+        <!-- Incluye campos para new_cols -->
+        <input type="text" id="GF_rolling" name="GF_rolling" placeholder="GF_rolling"><br>
+        <input type="text" id="GA_rolling" name="GA_rolling" placeholder="GA_rolling"><br>
+        <!-- Agrega más campos según sea necesario -->
+        <input type="submit" value="Predict">
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                Venue_code: document.getElementById('Venue_code').value,
+                Opp_code: document.getElementById('Opp_code').value,
+                Hour: document.getElementById('Hour').value,
+                Day_code: document.getElementById('Day_code').value,
+                GF_rolling: document.getElementById('GF_rolling').value,
+                GA_rolling: document.getElementById('GA_rolling').value
+                // Agrega más campos según sea necesario
+            };
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = `RF Prediction: ${data.rf_prediction}, NN Prediction: ${data.nn_prediction}`;
+            });
+        });
+    </script>
+</body>
+</html>
