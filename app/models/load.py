@@ -1,6 +1,7 @@
 import tensorflow as tf
 import pickle
 from fastapi import FastAPI, HTTPException
+from app.core.config import settings  # Importamos la configuración
 
 app = FastAPI()
 
@@ -20,11 +21,11 @@ def load_pkl_model(model_path: str):
         raise HTTPException(status_code=500, detail=f"Error loading PKL model: {str(e)}")
 
 # Cargar modelos al iniciar la aplicación
-h5_model = load_h5_model('ruta/al/modelo.h5')
-pkl_model = load_pkl_model('ruta/al/modelo.pkl')
+h5_model = load_h5_model(settings.MODEL_PATH_H5)
+pkl_model = load_pkl_model(settings.MODEL_PATH_PKL)
 
 @app.on_event("startup")
 async def startup_event():
     global h5_model, pkl_model
-    h5_model = load_h5_model('ruta/al/modelo.h5')
-    pkl_model = load_pkl_model('ruta/al/modelo.pkl')
+    h5_model = load_h5_model(settings.MODEL_PATH_H5)
+    pkl_model = load_pkl_model(settings.MODEL_PATH_PKL)
